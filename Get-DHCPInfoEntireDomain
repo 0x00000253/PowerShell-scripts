@@ -1,0 +1,38 @@
+# Retrieve all authorized DHCP servers from Active Directory
+$authorizedDHCPServers = Get-DhcpServerInDC
+
+foreach($authorizedDHCPServer in $authorizedDHCPServers) {
+
+    # Output all scopes per DHCP server
+    $scopes = $null
+    $scopes = Get-DhcpServerv4Scope -ComputerName $authorizedDHCPServer.DnsName
+    $scopes | Export-Csv -NoTypeInformation -Path "C:\Temp\$($authorizedDHCPServer.DnsName).csv"
+
+    # Output reservations and scope options for all scopes per DHCP server
+    foreach($scope in $scopes) {
+
+        $scopeOptions = $null
+        $scopeOptions = Get-DhcpServerv4OptionValue -ComputerName $authorizedDHCPServer.DnsName -ScopeId $scope.ScopeId -All
+        $reservations = Get-DhcpServerv4Reservation -ComputerName $authorizedDHCPServer.DnsName -ScopeId $scope.ScopeId
+        
+        $exportArrayOptions = @("OptionId,Name,Type,Value")
+        $exportArrayReservations = @("IPAddress,ClientId,Name")
+
+        foreach($scopeOption in $scopeOptions) {
+
+            if($scopeOption.OptionId -ne '51') {
+            
+                $exportArrayOptions += "$($scopeOption.OptionId),$($scopeOption.Name),$($scopeOption.Type),$($scopeOption.Value -join ',')"
+            }
+        }
+
+        foreach($reservation in $reservations) {
+
+            $exportArrayReservations += "$($reservation.IPAddress),$($reservation.ClientId),$($reservation.Name)"
+        }
+
+        $exportArrayOptions | Out-File -FilePath "C:\Temp\$($authorizedDHCPServer.DnsName)_$($scope.ScopeID)_Options.csv"
+        $exportArrayReservations | Out-File -FilePath "C:\Temp\$($authorizedDHCPServer.DnsName)_$($scope.ScopeID)_Reservations.csv"
+        
+    }
+}
