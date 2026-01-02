@@ -1,0 +1,38 @@
+$ADDN = (Get-ADDomain).DistinguishedName
+$custName = 'Homelab'
+
+
+New-ADOrganizationalUnit -Path $ADDN -Name 'AADsync_Excluded' 
+
+New-ADOrganizationalUnit -Path $ADDN -Name 'ManagedServiceProvider'
+New-ADOrganizationalUnit -Path "OU=ManagedServiceProvider,$ADDN" -Name 'Groups'
+New-ADOrganizationalUnit -Path "OU=Groups,OU=ManagedServiceProvider,$ADDN" -Name 'Role Groups'
+New-ADOrganizationalUnit -Path "OU=Groups,OU=ManagedServiceProvider,$ADDN" -Name 'Security Groups'
+New-ADOrganizationalUnit -Path "OU=ManagedServiceProvider,$ADDN" -Name 'Users'
+
+New-ADOrganizationalUnit -Path $ADDN -Name $custName
+New-ADOrganizationalUnit -Path "OU=$custName,$ADDN" -Name 'Computers'
+New-ADOrganizationalUnit -Path "OU=$custName,$ADDN" -Name 'Contacts'
+New-ADOrganizationalUnit -Path "OU=$custName,$ADDN" -Name 'Groups'
+New-ADOrganizationalUnit -Path "OU=Groups,OU=$custName,$ADDN" -Name 'Application Groups'
+New-ADOrganizationalUnit -Path "OU=Groups,OU=$custName,$ADDN" -Name 'Security Groups'
+New-ADOrganizationalUnit -Path "OU=Groups,OU=$custName,$ADDN" -Name 'Role Groups'
+New-ADOrganizationalUnit -Path "OU=Groups,OU=$custName,$ADDN" -Name 'Distribution Groups'
+New-ADOrganizationalUnit -Path "OU=Groups,OU=$custName,$ADDN" -Name 'Mailbox Access Groups'
+New-ADOrganizationalUnit -Path "OU=$custName,$ADDN" -Name 'SharedMailboxes'
+New-ADOrganizationalUnit -Path "OU=$custName,$ADDN" -Name 'Users'
+New-ADOrganizationalUnit -Path "OU=$custName,$ADDN" -Name 'Servers'
+New-ADOrganizationalUnit -Path "OU=Servers,OU=$custName,$ADDN" -Name 'Groups'
+New-ADOrganizationalUnit -Path "OU=Groups,OU=Servers,OU=$custName,$ADDN" -Name 'Administrators'
+New-ADOrganizationalUnit -Path "OU=Groups,OU=Servers,OU=$custName,$ADDN" -Name 'RDP Users'
+New-ADOrganizationalUnit -Path "OU=$custName,$ADDN" -Name 'Service Accounts'
+New-ADOrganizationalUnit -Path "OU=$custName,$ADDN" -Name 'Suppliers'
+New-ADOrganizationalUnit -Path "OU=Suppliers,OU=$custName,$ADDN" -Name 'Groups'
+New-ADOrganizationalUnit -Path "OU=Groups,OU=Suppliers,OU=$custName,$ADDN" -Name 'Role Groups'
+New-ADOrganizationalUnit -Path "OU=Groups,OU=Suppliers,OU=$custName,$ADDN" -Name 'Security Groups'
+New-ADOrganizationalUnit -Path "OU=Suppliers,OU=$custName,$ADDN" -Name 'Users'
+New-ADOrganizationalUnit -Path "OU=$custName,$ADDN" -Name 'T0Assets'
+New-ADOrganizationalUnit -Path "OU=T0Assets,OU=$custName,$ADDN" -Name 'Groups'
+New-ADOrganizationalUnit -Path "OU=T0Assets,OU=$custName,$ADDN" -Name 'Managed Service Accounts'
+New-ADOrganizationalUnit -Path "OU=T0Assets,OU=$custName,$ADDN" -Name 'Servers'
+New-ADOrganizationalUnit -Path "OU=T0Assets,OU=$custName,$ADDN" -Name 'Service Accounts'
