@@ -6,6 +6,7 @@ foreach($d in $dnsRecords) {
   $oldRecord = Get-DnsServerResourceRecord -ComputerName $domainFQDN -ZoneName $domainFQDN -Name $d
   $newRecord = [CimInstance]::New($oldRecord)
   $newRecord.RecordData.HostNameAlias = $targetHost
+  $newRecord.TimeToLive = [System.TimeSpan]::FromMinutes(5)
   Set-DnsServerResourceRecord -ComputerName $domainFQDN -ZoneName $domainFQDN -OldInputObject $oldRecord -NewInputObject $newRecord
   [PSCustomObject]@{
     DNSRecord = $d
