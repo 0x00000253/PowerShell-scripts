@@ -1,0 +1,35 @@
+$days  = 30 # Number of days to go back in history
+$outputFolder = 'C:\temp'
+$nodes = (Get-AdfsFarmInformation).FarmNodes.FQDN
+
+# Collect last used time per relying party trust from all nodes' Security log
+$seen = Invoke-Command -ComputerName $nodes -ArgumentList $days -ScriptBlock {
+    param($days)
+    $last = @{}
+    Get-WinEvent -FilterHashtable @{
+        LogName='Security'; ProviderName='AD FS Auditing'
+        Id=1200,1201,1202,1203; StartTime=(Get-Date).AddDays(-$days) } -ErrorAction SilentlyContinue |
+    ForEach-Object {
+        if ($_.Properties[1].Value -match '<RelyingParty>([^<]+)</RelyingParty>') {
+            $rp = $Matches[1].ToLower().TrimEnd('/')
+            if (-not $last[$rp] -or $_.TimeCreated -gt $last[$rp]) { $last[$rp] = $_.TimeCreated }
+        }
+    }
+    $last.GetEnumerator() | ForEach-Object { [pscustomobject]@{ Identifier = $_.Key; LastUsed = $_.Value } }
+}
+
+# Read the trusts once on the primary and match
+$report = Get-AdfsRelyingPartyTrust | ForEach-Object {
+    $ids    = $_.Identifier | ForEach-Object { $_.ToLower().TrimEnd('/') }
+    $latest = $seen | Where-Object { $ids -contains $_.Identifier } |
+              Sort-Object LastUsed -Descending | Select-Object -First 1
+    [pscustomobject]@{
+        Name       = $_.Name
+        Enabled    = $_.Enabled
+        LastUsed   = $latest.LastUsed
+        LastUsedOn = $latest.PSComputerName
+    }
+} | Sort-Object Name
+
+$report | Export-Csv -Path "$outputFolder\ADFS-RelyingPartyTrust-Usage_$(Get-Date -Format yyyyMMdd).csv" -NoTypeInformation -Encoding UTF8 -Delimiter ';'
+$report | Format-Table -AutoSize
